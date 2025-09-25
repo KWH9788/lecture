@@ -266,3 +266,107 @@ sep()
 
 print(s.value_counts())
 sep()
+
+print(s.value_counts().index)
+print(s.value_counts().values)
+sep()
+
+##### 문자열 숫자 변환 #####
+s = Series(["1,234", "5,678", "9,876"])
+# print( int(s) ) # 타입 에러
+
+# , 제거
+def remove_comma(x) :
+    print(x, 'in function')
+    return x
+
+s = Series(["1,234", "5,678", "9,876"])
+# map : 시리즈 객체에 함수 적용
+result = s.map(remove_comma)    # 함수 이름만 입력
+print(result)
+sep()
+
+def remove_comma(x) :
+    # replace : 문자열 바꾸기
+    return int(x.replace(",", ""))
+
+s = Series(["1,234", "5,678", "9,876"])
+result = s.map(remove_comma)
+print(result)
+sep()
+
+def is_greater_than_5000(x):
+    if x > 5000:
+        return "크다"
+    else:
+        return "작다"
+
+s = Series([1234, 5678, 9876])
+s = s.map(is_greater_than_5000)
+print(s)
+sep()
+
+##### 필터링 #####
+data = [42500, 42550, 41800, 42550, 42650]
+index = ['2019-05-31', '2019-05-30', '2019-05-29', '2019-05-28', '2019-05-27']
+s = Series(data=data, index=index)
+cond = s > 42000
+print(cond)
+sep()
+
+print(s[cond])
+sep()
+
+close = [42500, 42550, 41800, 42550, 42650]     # 종가
+open = [42600, 42200, 41850, 42550, 42500]      # 시가
+index = ['2019-05-31', '2019-05-30', '2019-05-29', '2019-05-28', '2019-05-27']
+
+open = Series(data=open, index=index)
+close = Series(data=close, index=index)
+
+cond = close > open
+print(cond)
+sep()
+
+print(close[cond])
+# print(close[close > open])
+sep()
+
+print(close.index[close > open])
+# print(close[close > open].index)
+sep()
+
+close = [42500, 42550, 41800, 42550, 42650]
+open = [42600, 42200, 41850, 42550, 42500]
+index = ['2019-05-31', '2019-05-30', '2019-05-29', '2019-05-28', '2019-05-27']
+
+open = Series(data=open, index=index)
+close = Series(data=close, index=index)
+diff = close - open
+print(diff[close > open])
+sep()
+
+##### 정렬 #####
+data = [3.1, 2.0, 10.1, 5.1]
+index = ['000010', '000020', '000030', '000040']
+s = Series(data=data, index=index)
+print(s)
+
+# 정렬 (오름차순)
+s1 = s.sort_values()
+print("오름차순:\n", s1)
+sep()
+
+# 정렬 (내림차순)
+s2 = s.sort_values(ascending=False)
+print("내림차순:\n", s2)
+sep()
+
+# 순위 매기기
+data = [3.1, 2.0, 10.1, 3.1]
+index = ['000010', '000020', '000030', '000040']
+s = Series(data=data, index=index)
+print(s.rank())
+sep()
+
+print(s.rank(ascending=False))
