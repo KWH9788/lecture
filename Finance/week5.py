@@ -290,3 +290,216 @@ sep()
 df['규모'] = np.where(df['시가총액'] >= df['시가총액평균'], "대형주", "중/소형주")
 print(df)
 sep()
+
+# 멀티인덱스
+data = [
+    ["영업이익", "컨센서스", 1000, 1200],
+    ["영업이익", "잠정치", 900, 1400],
+    ["당기순이익", "컨센서스", 800, 900],
+    ["당기순이익", "잠정치", 700, 800]
+]
+
+df = DataFrame(data=data)
+df = df.set_index([0, 1])
+print(df)
+sep()
+
+df.index.names = ["재무연월", ""]
+df.columns = ["2020/06", "2020/09"]
+print(df)
+sep()
+
+print(df.loc["영업이익"])
+sep()
+
+print(df.loc[ ("영업이익", "컨센서스") ])
+sep()
+
+print(df.iloc[0])
+sep()
+
+print(df.iloc[0, 0])
+sep()
+
+print(df.loc[("영업이익", "컨센서스"), "2020/06"])
+sep()
+
+a = [1, 2, 3, 4, 5]
+
+print(a[0:5:2])
+print(a[slice(0, 5, 2)])
+sep()
+
+a = [1, 2, 3, 4, 5]
+b = [3, 4, 5, 6, 7]
+
+s = slice(0, 5, 2)
+print(a[ s ])
+print(b[ s ])
+sep()
+
+a = [1, 2, 3, 4, 5]
+
+print(a[:])
+print(a[slice(None)])
+print(a[ : : ])
+print(a[slice(None, None)])
+sep()
+
+# print( df.loc[ ( :, '컨센서스'), : ] )
+# sep()
+
+print(df.loc[ (slice(None), '컨센서스'), :])
+sep()
+
+idx = pd.IndexSlice
+print(df.loc[idx[:, "컨센서스"], :])
+sep()
+
+# 멀티 컬럼
+data = [
+    [100, 900, 800, 700],
+    [1200, 1400, 900, 800]
+]
+
+columns = [
+    ['영업이익', '영업이익', '당기순이익', '당기순이익'],
+    ['컨센서스', '잠정치', '컨센서스', '잠정치']
+]
+
+index = ["2020/06", "2020/09"]
+
+df = DataFrame(data=data, index=index, columns=columns)
+print(df)
+sep()
+
+level_0 = ["영업이익", "당기순이익"]
+level_1 = ["컨센서스", "잠정치"]
+
+idx = pd.MultiIndex.from_product([level_0, level_1])
+print(idx)
+sep()
+
+print(idx.get_level_values(0))
+sep()
+
+print(idx.get_level_values(1))
+sep()
+
+print(df["영업이익"])
+sep()
+
+# stack, unstack
+# data = [
+#     [100, 900, 800, 700],
+#     [1200, 1400, 900, 800]
+# ]
+
+# columns = [
+#     ['영업이익', '영업이익', '당기순이익', '당기순이익'],
+#     ['컨센서스', '잠정치', '컨센서스', '잠정치']
+# ]
+
+# index = ["2020/06", "2020/09"]
+
+# df = DataFrame(data=data, index=index, columns=columns)
+# print(df)
+# sep()
+
+# print(df.stack())
+# sep()
+
+# print(df.stack(level=0))
+# sep()
+
+# print(df.stack().stack())
+# sep()
+
+# print(df.stack().unstack())
+# sep()
+
+data = [
+    [1000, 1100, 900, 1200, 1300],
+    [800, 2000, 1700, 1500, 1800]
+]
+index = ['자본금', '부채']
+columns = ["2020/03", "2020/06", "2020/09", "2021/03", "2021/06"]
+df = DataFrame(data, index, columns)
+print(df)
+sep()
+
+df_stacked = df.stack().reset_index()
+print(df_stacked)
+sep()
+
+print(df_stacked['level_1'].str.split('/'))
+sep()
+
+df_split = DataFrame( list(df_stacked['level_1'].str.split('/')) )
+print(df_split)
+sep()
+
+df_merged = pd.concat( [df_stacked, df_split], axis=1 )
+df_merged.columns = ['계정', "년월", "금액", "연도", "월"]
+print(df_merged)
+sep()
+
+df_group = df_merged.groupby(["계정", "연도"]).sum()
+print(df_group)
+sep()
+
+data = [
+    ["2021-08-12", "삼성전자", 77000],
+    ["2021-08-13", "삼성전자", 74400],
+    ["2021-08-12", "LG전자", 153000],
+    ["2021-08-13", "LG전자", 150500],
+    ["2021-08-12", "SK하이닉스", 100500],
+    ["2021-08-13", "SK하이닉스", 101500]
+]
+columns = ["날짜", "종목명", "종가"]
+df = DataFrame(data=data, columns=columns)
+print(df)
+sep()
+
+print(pd.pivot(data=df, index="날짜", columns="종목명", values="종가"))
+sep()
+
+print(df.groupby(["날짜", "종목명"]).mean().unstack())
+sep()
+
+# melt
+data = [
+    ["005930", "삼성전자", 75800, 76000, 74100, 74400],
+    ["035720", "카카오", 147500, 147500, 144500, 146000],
+    ["000660", "SK하이닉스", 99600, 101500, 98900, 101500]
+]
+
+columns = ["종목코드", "종목명", "시가", "고가", "저가", "종가"]
+df = DataFrame(data=data, columns=columns)
+print(df)
+sep()
+
+print(df.melt())
+sep()
+
+print(df.melt(id_vars=['종목코드', '종목명']))
+sep()
+
+print(df.melt(value_vars=['시가', '종가']))
+sep()
+
+# 
+data = [
+    ["3R", 1510, 7.36],
+    ["3SOFT", 1790, 1.65],
+    ["ACTS", 1185, 1.28]
+]
+
+index = ["037730", "036360", "005760"]
+columns = ["종목명", "현재가", "등락률"]
+df = DataFrame(data=data, index=index, columns=columns)
+df.index.name = '종목코드'
+print(df)
+sep()
+
+df.to_csv("data.csv")
