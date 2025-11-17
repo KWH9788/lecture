@@ -94,9 +94,11 @@ cond = (df4['PER'] >= 2.5) & (df4['PER'] <= 10)
 df5 = df4[cond].copy()
 # print(df5.head())
 
+# PBR 기준으로 오름차순 정렬 후 30개 종목 추출
 df6 = df5.sort_values(by="PBR").iloc[:30]
 # print(df6)
-# print(df6.describe())
+print("="*40)
+print(df6.describe())
+print("="*40)
 
-print("PBR + PER 콤보 전략 수익률 평균:")
 print(df6[df6["등락률"] == df6["등락률"].min()])
