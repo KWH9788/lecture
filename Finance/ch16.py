@@ -17,8 +17,10 @@ df['중심선'] = df['종가'].rolling(20).mean()
 df['상단선'] = df['중심선'] + 2 * std
 df['하단선'] = df['중심선'] - 2 * std
 df.plot(figsize=(12,5))     # 16.1.2
+plt.show()
 
 df.loc["20000630":"20000830"].plot(figsize=(12,5))  # 16.1.3
+plt.show()
 
 # ==========================
 # === 볼린저 밴드 백테스팅 ===
@@ -50,6 +52,7 @@ print(df.tail())    # 16.2.2
 
 df['단순보유수익률'] = df['일간수익률'].cumprod()
 df[['단순보유수익률', '누적수익률']].plot(figsize=(12, 4))  # 16.2.3
+plt.show()
 
 delta = df.index[-1] - df.index[0]
 year = delta.days/365
