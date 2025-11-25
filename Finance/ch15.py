@@ -18,19 +18,19 @@ df['변화량'] = df['종가'] - df['종가'].shift(1)
 df.loc[df['변화량'] >= 0, '상승폭'] = df['변화량']
 df.loc[df['변화량'] < 0, '하락폭'] = -df['변화량']
 df = df.fillna(0)
-print(df.head())
+print(df.head())            # 15.1.1
 
-# 14일 이동평균으로 RSI 계산
+# SMA(이동평균)로 RSI 계산
 df['AU'] = df['상승폭'].rolling(14).mean()
 df['DU'] = df['하락폭'].rolling(14).mean()
 df['RSI'] = df['AU'] / (df['AU'] + df['DU']) * 100
-print(df.iloc[12:].head())
+print(df.iloc[12:].head())  # 15.1.2
 
-# 지수이동평균으로 RSI 계산
+# EMA(지수이동평균)로 RSI 계산
 df['AU'] = df['상승폭'].ewm(span=14, adjust=False).mean()
 df['DU'] = df['하락폭'].ewm(span=14, adjust=False).mean()
 df['RSI'] = df['AU'] / (df['AU'] + df['DU']) * 100
-print(df.iloc[12:].head())
+print(df.iloc[12:].head())  # 15.1.3
 
 # SMA와 EMA로 구한 RSI를 시각화
 df['AU'] = df['상승폭'].rolling(14).mean()
@@ -41,7 +41,7 @@ df['AU'] = df['상승폭'].ewm(span=14, adjust=False).mean()
 df['DU'] = df['하락폭'].ewm(span=14, adjust=False).mean()
 df['RSI-EMA'] = df['AU'] / (df['AU'] + df['DU']) * 100
 
-df[['RSI-SMA', 'RSI-EMA']].iloc[20:300].plot(figsize=(8, 4))
+df[['RSI-SMA', 'RSI-EMA']].iloc[20:300].plot(figsize=(8, 4))    # 15.1.4
 
 # ========================
 # === RSI 전략 백테스팅 ===
@@ -75,7 +75,7 @@ df['보유수익률'].fillna(1, inplace=True)
 
 df['RSI수익률'] = df['보유수익률'].cumprod()
 df['단순보유수익률'] = df['종가'] / df.iloc[0, 0]
-print(df.tail())
+print(df.tail())        # 15.2.2
 
 import matplotlib.pyplot as plt 
 import platform
@@ -87,7 +87,7 @@ if platform.system() == 'Darwin':
 else:
     plt.rc('font', family='Malgun Gothic') 
     
-df[['RSI수익률', '단순보유수익률']].plot(figsize=(8, 4))
+df[['RSI수익률', '단순보유수익률']].plot(figsize=(8, 4))    # 15.2.3
 
 # ===============================
 # === RSI 전략 백테스팅(전종목) ===
@@ -145,14 +145,14 @@ print("="*40)
 print(s.describe())
 
 print("="*40)
-print("최대값을 가진 ticker: ")
+print("최대 수익률을 가진 ticker: ")
 print(s.idxmax())
 
 df = stock.get_market_ohlcv("20000101", "20191231", "008080")
-df.loc['2013-09':, '종가'].plot(figsize=(8, 2))
+df.loc['2013-09':, '종가'].plot(figsize=(8, 2))     # 15.3.1
 
 df = stock.get_market_ohlcv("20000101", "20191231", "007630")
-df.loc[:"2001", '종가'].plot(figsize=(8, 2))
+df.loc[:"2001", '종가'].plot(figsize=(8, 2))        # 15.3.2
 
 print("="*40)
 print("데이터 불러오는 중....")
