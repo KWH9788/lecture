@@ -201,6 +201,16 @@ def build_neutral_universe(liquid_etf_pool):
     print(universe_df[['factor', 'name']])
     return universe_df
 
+def get_universe_returns(universe_df, start_date, end_date):
+    """주어진 유니버스의 과거 1년 수익률 데이터를 가져오는 헬퍼 함수"""
+    data = pd.DataFrame()
+    for ticker, name in zip(universe_df['ticker'], universe_df['name']):
+        try:
+            data[name] = stock.get_etf_ohlcv_by_date(start_date, end_date, ticker)['종가']
+        except:
+            continue
+    return data.pct_change().dropna()
+
 # --- [메인 실행 블록] ---
 # if __name__ == "__main__":
 #     base_date_for_2024_backtest = "20231228"
