@@ -4,9 +4,8 @@ import pandas as pd
 
 def get_liquid_etf_pool_robust(base_date, min_value):
     """
-    [데이터 수집 모듈]
-    기준일(base_date)에 존재했던 모든 ETF 정보를 수집하고, 거래대금 기준으로
-    최소 유동성 기준을 통과한 ETF 풀을 생성합니다.
+    [최종 안정화 버전]
+    이름 조회가 가능한 현재 상장 ETF 중, 최소 유동성 기준을 통과한 풀을 생성합니다.
     """
     try:
         tickers = stock.get_etf_ticker_list(base_date)
@@ -17,18 +16,17 @@ def get_liquid_etf_pool_robust(base_date, min_value):
     etf_info_list = []
     for ticker in tickers:
         try:
-            name = stock.get_etf_ticker_name(ticker)
             trading_value = all_etf_ohlcv_df.loc[ticker, '거래대금']
-            etf_info_list.append({'ticker': ticker, 'name': name, '거래대금': trading_value})
+            if trading_value >= min_value:
+                name = stock.get_etf_ticker_name(ticker)
+                etf_info_list.append({'ticker': ticker, 'name': name, '거래대금': trading_value})
         except (KeyError, IndexError, ValueError):
             continue
             
-    raw_df = pd.DataFrame(etf_info_list)
-    if raw_df.empty:
+    if not etf_info_list:
         return pd.DataFrame()
         
-    liquid_df = raw_df[raw_df['거래대금'] >= min_value].copy()
-    return liquid_df
+    return pd.DataFrame(etf_info_list)
 
 def classify_etf_decision_tree(etf_name):
     """
