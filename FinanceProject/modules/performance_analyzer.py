@@ -37,18 +37,31 @@ def analyze_performance(value_df):
     return pd.DataFrame(results).T
 
 def plot_cumulative_returns(value_df, filepath):
-    normalized_df = value_df / value_df.iloc[0]
+    # 첫 번째 유효한 값으로 정규화 (NaN 처리)
+    normalized_df = pd.DataFrame()
+    
+    for col in value_df.columns:
+        series = value_df[col].dropna()
+        if len(series) > 0:
+            first_value = series.iloc[0]
+            if first_value > 0:  # 0으로 나누기 방지
+                normalized_df[col] = value_df[col] / first_value
+            else:
+                print(f"  경고: {col}의 첫 값이 0 또는 유효하지 않습니다.")
     
     plt.figure(figsize=(14, 8))
     for col in normalized_df.columns:
-        plt.plot(normalized_df.index, normalized_df[col], label=col)
+        series = normalized_df[col].dropna()
+        if len(series) > 0:
+            plt.plot(series.index, series.values, label=col, linewidth=2)
     
-    plt.title('전략별 누적 수익률 시뮬레이션', fontsize=16)
-    plt.xlabel('날짜')
-    plt.ylabel('정규화된 가치 (Normalized Value)')
-    plt.legend()
-    plt.grid(True)
-    plt.savefig(filepath)
+    plt.title('전략별 누적 수익률 시뮬레이션', fontsize=16, fontweight='bold')
+    plt.xlabel('날짜', fontsize=12)
+    plt.ylabel('정규화된 가치 (초기 투자 = 1.0)', fontsize=12)
+    plt.legend(loc='best', fontsize=10)
+    plt.grid(True, alpha=0.3)
+    plt.tight_layout()
+    plt.savefig(filepath, dpi=300, bbox_inches='tight')
     plt.close()
 
 def analyze_monthly_performance(value_df):
@@ -87,8 +100,16 @@ def plot_monthly_returns_heatmap(monthly_df, filepath):
     monthly_df_copy['Year'] = monthly_df_copy.index.year
     monthly_df_copy['Month'] = monthly_df_copy.index.month
     
-    fig, axes = plt.subplots(len(monthly_df.columns), 1, figsize=(14, 4 * len(monthly_df.columns)))
-    if len(monthly_df.columns) == 1:
+    # 연도 개수 계산하여 높이 동적 조정
+    num_strategies = len(monthly_df.columns)
+    num_years = monthly_df_copy['Year'].nunique()
+    
+    # 각 서브플롯 높이: 연도당 0.5, 최소 2, 최대 4
+    height_per_plot = max(2, min(4, num_years * 0.5))
+    total_height = height_per_plot * num_strategies
+    
+    fig, axes = plt.subplots(num_strategies, 1, figsize=(14, total_height))
+    if num_strategies == 1:
         axes = [axes]
     
     for idx, col in enumerate(monthly_df.columns):
@@ -97,10 +118,10 @@ def plot_monthly_returns_heatmap(monthly_df, filepath):
         
         sns.heatmap(pivot, annot=True, fmt='.1f', cmap='RdYlGn', center=0, 
                     cbar_kws={'label': '수익률 (%)'}, ax=axes[idx],
-                    vmin=-10, vmax=10)
-        axes[idx].set_title(f'{col} - 월별 수익률 히트맵', fontsize=14, fontweight='bold')
-        axes[idx].set_xlabel('월')
-        axes[idx].set_ylabel('연도')
+                    vmin=-10, vmax=10, annot_kws={'fontsize': 9})
+        axes[idx].set_title(f'{col} - 월별 수익률 히트맵', fontsize=12, fontweight='bold')
+        axes[idx].set_xlabel('월', fontsize=10)
+        axes[idx].set_ylabel('연도', fontsize=10)
     
     plt.tight_layout()
     plt.savefig(filepath, dpi=300, bbox_inches='tight')
@@ -112,22 +133,28 @@ def plot_drawdown_chart(value_df, filepath):
     """
     fig, axes = plt.subplots(2, 1, figsize=(14, 10))
     
-    # 상단: 누적 수익 곡선
-    normalized_df = value_df / value_df.iloc[0]
-    for col in normalized_df.columns:
-        axes[0].plot(normalized_df.index, normalized_df[col], label=col, linewidth=2)
+    # 상단: 누적 수익 곡선 (NaN 처리)
+    for col in value_df.columns:
+        series = value_df[col].dropna()
+        if len(series) > 0:
+            first_value = series.iloc[0]
+            if first_value > 0:
+                normalized = series / first_value
+                axes[0].plot(normalized.index, normalized.values, label=col, linewidth=2)
+    
     axes[0].set_title('누적 수익률 곡선', fontsize=14, fontweight='bold')
     axes[0].set_ylabel('정규화된 가치')
     axes[0].legend(loc='best')
     axes[0].grid(True, alpha=0.3)
     
-    # 하단: 드로우다운
+    # 하단: 드로우다운 (NaN 처리)
     for col in value_df.columns:
-        series = value_df[col]
-        rolling_max = series.cummax()
-        drawdown = (series / rolling_max - 1) * 100
-        axes[1].fill_between(drawdown.index, drawdown, 0, alpha=0.3, label=col)
-        axes[1].plot(drawdown.index, drawdown, linewidth=1.5)
+        series = value_df[col].dropna()
+        if len(series) > 0:
+            rolling_max = series.cummax()
+            drawdown = (series / rolling_max - 1) * 100
+            axes[1].fill_between(drawdown.index, drawdown, 0, alpha=0.3, label=col)
+            axes[1].plot(drawdown.index, drawdown, linewidth=1.5)
     
     axes[1].set_title('드로우다운 (Drawdown)', fontsize=14, fontweight='bold')
     axes[1].set_xlabel('날짜')

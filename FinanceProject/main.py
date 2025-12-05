@@ -24,6 +24,32 @@ def main():
     if final_values.empty:
         print("\n백테스팅 결과가 비어있습니다. 프로세스를 종료합니다.")
         return
+    
+    # 백테스팅 기간으로 필터링 (2023년 데이터 제거)
+    import pandas as pd
+    final_values = final_values.loc[config.START_DATE:config.END_DATE]
+    
+    # NaN 값 제거 및 검증
+    print(f"\n데이터 검증 중...")
+    for col in final_values.columns:
+        nan_count = final_values[col].isna().sum()
+        if nan_count > 0:
+            print(f"  ⚠️  {col}: {nan_count}개 NaN 값 발견 → 제거")
+            final_values[col] = final_values[col].fillna(method='ffill').fillna(method='bfill')
+    
+    # 모든 컬럼이 NaN인 행 제거
+    final_values = final_values.dropna(how='all')
+    
+    print(f"  ✓ 최종 데이터 기간: {final_values.index[0].date()} ~ {final_values.index[-1].date()}")
+    print(f"  ✓ 데이터 포인트: {len(final_values)}개")
+    
+    # 벤치마크 데이터 검증
+    if 'BM_KOSPI200' in final_values.columns:
+        bm_valid = final_values['BM_KOSPI200'].notna().sum()
+        print(f"  ✓ BM_KOSPI200: {bm_valid}/{len(final_values)} 유효 데이터")
+    if 'BM_60_40' in final_values.columns:
+        bm_valid = final_values['BM_60_40'].notna().sum()
+        print(f"  ✓ BM_60_40: {bm_valid}/{len(final_values)} 유효 데이터")
         
     # 2. 성과 분석 및 결과 저장
     kpi_summary = performance_analyzer.analyze_performance(final_values)

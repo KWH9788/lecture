@@ -25,6 +25,48 @@ def build_aggressive_universe(classified_df, base_date, lookback_months, top_n, 
     attack_candidates = classified_df[classified_df['class'].isin(attacker_classes)]
     
     # 미리 계산된 시장 수익률 데이터에서 필요한 기간만 슬라이싱
+    if market_returns_df.empty:
+        # 시장 데이터가 없으면 변동성만으로 선정
+        stats = []
+        for ticker in attack_candidates['ticker']:
+            if ticker not in full_price_df.columns:
+                continue
+            prices = full_price_df.loc[start_dt:end_dt, ticker].dropna()
+            if len(prices) < (lookback_months * 20 * 0.8):
+                continue
+            returns = prices.pct_change().dropna()
+            volatility = returns.std()
+            stats.append({'ticker': ticker, 'vol': volatility, 'beta': 1.0})  # 베타 기본값
+        
+        if not stats:
+            return []
+        
+        stats_df = pd.DataFrame(stats)
+        attackers = stats_df.nlargest(top_n, 'vol')['ticker'].tolist()
+        universe.extend(attackers)
+        
+        # 수비수 선정
+        defender_classes = ['현금성자산', '국내채권']
+        defend_candidates = classified_df[classified_df['class'].isin(defender_classes)]
+        
+        def_stats = []
+        for ticker in defend_candidates['ticker']:
+            if ticker not in full_price_df.columns:
+                continue
+            prices = full_price_df.loc[start_dt:end_dt, ticker].dropna()
+            if len(prices) < (lookback_months * 20 * 0.8):
+                continue
+            returns = prices.pct_change().dropna()
+            volatility = returns.std()
+            def_stats.append({'ticker': ticker, 'vol': volatility})
+        
+        if def_stats:
+            def_stats_df = pd.DataFrame(def_stats)
+            defender = def_stats_df.sort_values(by='vol').iloc[0]['ticker']
+            universe.append(defender)
+        
+        return universe
+    
     market_returns = market_returns_df.loc[start_dt:end_dt]
     if market_returns.empty:
         return []

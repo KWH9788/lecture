@@ -35,3 +35,8 @@ AGGRESSIVE_TOP_N = 3               # 공격형: 상위 ETF 선정 개수
 # --- 벤치마크 Ticker ---
 BM_KOSPI_TICKER = "069500"
 BM_BOND_TICKER = "114260"
+
+# --- 데이터 캐시 설정 ---
+USE_CACHE = True                    # True: 캐시 사용, False: 항상 새로 다운로드
+CACHE_DIR = "cache"                # 캐시 저장 디렉토리
+CACHE_EXPIRY_DAYS = 30               # 캐시 유효 기간 (일)
